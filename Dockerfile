@@ -24,39 +24,37 @@ ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy"
 
 RUN npm run build-docker
 
-# Production image, copy all the files and run next
+# Production image. Ship the full build + full node_modules and run `next start`.
+# NOTE: we intentionally do NOT use Next's standalone output here. With pnpm, the
+# standalone node_modules is a partial, symlinked tree containing only what the web
+# server traced — the startup scripts' deps (semver, chalk, @prisma/client, ...) end
+# up as dangling symlinks, so `check-db` crashes with ERR_MODULE_NOT_FOUND at boot.
+# A single real node_modules makes both the scripts and the server resolve cleanly.
 FROM node:${NODE_IMAGE_VERSION} AS runner
 WORKDIR /app
 
-ARG PRISMA_VERSION="7.3.0"
 ARG NODE_OPTIONS
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS=$NODE_OPTIONS
+ENV PATH=/app/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-RUN set -x \
-    && apk add --no-cache curl \
-    && npm install -g pnpm
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs \
+ && apk add --no-cache curl
 
-# Script dependencies
-RUN pnpm --allow-build='@prisma/engines' --allow-build='prisma' --allow-build='@prisma/client' add npm-run-all dotenv chalk semver \
-    prisma@${PRISMA_VERSION} \
-    @prisma/client@${PRISMA_VERSION} \
-    @prisma/adapter-pg@${PRISMA_VERSION}
-
+# node_modules is read-only at runtime -> keep root-owned (avoids a slow recursive chown)
+COPY --from=builder /app/node_modules ./node_modules
+# .next (ISR/cache) and public (update-tracker may rewrite script.js) must be writable by nextjs
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/generated ./generated
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
@@ -65,4 +63,5 @@ EXPOSE 3000
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
-CMD ["pnpm", "start-docker"]
+# start-docker without the standalone server.js: run the same steps, then `next start`.
+CMD ["sh", "-c", "node scripts/check-db.js && node scripts/update-tracker.js && next start -p 3000 -H 0.0.0.0"]
