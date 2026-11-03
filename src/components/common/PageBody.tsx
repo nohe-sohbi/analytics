@@ -1,5 +1,5 @@
 'use client';
-import { AlertBanner, Column, type ColumnProps, Loading } from '@umami/react-zen';
+import { Alert, Column, type ColumnProps, Loading } from '@umami/react-zen';
 import type { ReactNode } from 'react';
 import { useMessages } from '@/components/hooks';
 
@@ -20,7 +20,7 @@ export function PageBody({
   const { t, messages } = useMessages();
 
   if (error) {
-    return <AlertBanner title={t(messages.error)} variant="error" />;
+    return <Alert title={t(messages.error)} variant="error" />;
   }
 
   if (isLoading) {
