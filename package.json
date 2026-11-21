@@ -175,5 +175,8 @@
       "deepmerge-ts@7.1.5": "8.0.0",
       "source-map-js@1.2.1": "1.2.2"
     }
+  },
+  "overrides": {
+    "effect": "3.22.1"
   }
 }
