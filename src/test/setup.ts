@@ -1,11 +1,11 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup, configure } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
-import { resetTestNavigation } from './navigation';
+import "@testing-library/jest-dom/vitest";
+import { cleanup, configure } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
+import { resetTestNavigation } from "./navigation";
 
-configure({ testIdAttribute: 'data-test' });
+configure({ testIdAttribute: "data-test" });
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -19,7 +19,7 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-Object.defineProperty(navigator, 'clipboard', {
+Object.defineProperty(navigator, "clipboard", {
   configurable: true,
   value: {
     readText: vi.fn(),
@@ -37,7 +37,7 @@ class ResizeObserver {
 
 class IntersectionObserver {
   readonly root = null;
-  readonly rootMargin = '';
+  readonly rootMargin = "";
   readonly thresholds = [];
 
   observe() {}

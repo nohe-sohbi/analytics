@@ -1,10 +1,12 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, notImplemented, PRISMA, runQuery } from '@/lib/db';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, notImplemented, PRISMA, runQuery } from "@/lib/db";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getEventDataUsage';
+const FUNCTION_NAME = "getEventDataUsage";
 
-export function getEventDataUsage(...args: [websiteIds: string[], filters: QueryFilters]) {
+export function getEventDataUsage(
+  ...args: [websiteIds: string[], filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: notImplemented,
     [CLICKHOUSE]: () => clickhouseQuery(...args),

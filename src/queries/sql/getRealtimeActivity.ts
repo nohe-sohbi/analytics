@@ -1,11 +1,13 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getRealtimeActivity';
+const FUNCTION_NAME = "getRealtimeActivity";
 
-export async function getRealtimeActivity(...args: [websiteId: string, filters: QueryFilters]) {
+export async function getRealtimeActivity(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -48,7 +50,10 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
   );
 }
 
-async function clickhouseQuery(websiteId: string, filters: QueryFilters): Promise<{ x: number }> {
+async function clickhouseQuery(
+  websiteId: string,
+  filters: QueryFilters,
+): Promise<{ x: number }> {
   const { rawQuery, parseFilters } = clickhouse;
   const { queryParams, filterQuery, cohortQuery, dateQuery } = parseFilters({
     ...filters,

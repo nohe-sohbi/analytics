@@ -1,8 +1,8 @@
-import { produce } from 'immer';
-import semver from 'semver';
-import { create } from 'zustand';
-import { CURRENT_VERSION, UPDATES_URL, VERSION_CHECK } from '@/lib/constants';
-import { getItem } from '@/lib/storage';
+import { produce } from "immer";
+import semver from "semver";
+import { create } from "zustand";
+import { CURRENT_VERSION, UPDATES_URL, VERSION_CHECK } from "@/lib/constants";
+import { getItem } from "@/lib/storage";
 
 const initialState = {
   current: CURRENT_VERSION,
@@ -18,11 +18,11 @@ export async function checkVersion() {
   const { current } = store.getState();
 
   const data = await fetch(`${UPDATES_URL}?v=${current}`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      Accept: 'application/json',
+      Accept: "application/json",
     },
-  }).then(res => {
+  }).then((res) => {
     if (res.ok) {
       return res.json();
     }
@@ -35,11 +35,15 @@ export async function checkVersion() {
   }
 
   store.setState(
-    produce(state => {
+    produce((state) => {
       const { latest, url } = data;
       const lastCheck = getItem(VERSION_CHECK);
 
-      const hasUpdate = !!(latest && lastCheck?.version !== latest && semver.gt(latest, current));
+      const hasUpdate = !!(
+        latest &&
+        lastCheck?.version !== latest &&
+        semver.gt(latest, current)
+      );
 
       state.current = current;
       state.latest = latest;

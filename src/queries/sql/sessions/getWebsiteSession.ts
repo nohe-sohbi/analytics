@@ -1,10 +1,12 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
 
-const FUNCTION_NAME = 'getWebsiteSession';
+const FUNCTION_NAME = "getWebsiteSession";
 
-export async function getWebsiteSession(...args: [websiteId: string, sessionId: string]) {
+export async function getWebsiteSession(
+  ...args: [websiteId: string, sessionId: string]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -32,7 +34,7 @@ async function relationalQuery(websiteId: string, sessionId: string) {
       count(distinct visit_id) as visits,
       sum(views) as views,
       sum(events) as events,
-      sum(${getTimestampDiffSQL('min_time', 'max_time')}) as "totaltime" 
+      sum(${getTimestampDiffSQL("min_time", "max_time")}) as "totaltime" 
     from (select
           session.session_id as id,
           session.distinct_id,
@@ -59,7 +61,7 @@ async function relationalQuery(websiteId: string, sessionId: string) {
     `,
     { websiteId, sessionId },
     FUNCTION_NAME,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 }
 
 async function clickhouseQuery(websiteId: string, sessionId: string) {
@@ -78,8 +80,8 @@ async function clickhouseQuery(websiteId: string, sessionId: string) {
       country,
       region,
       city,
-      ${getDateStringSQL('min(min_time)')} as firstAt,
-      ${getDateStringSQL('max(max_time)')} as lastAt,
+      ${getDateStringSQL("min(min_time)")} as firstAt,
+      ${getDateStringSQL("max(max_time)")} as lastAt,
       uniq(visit_id) visits,
       sum(views) as views,
       sum(events) as events,
@@ -109,5 +111,5 @@ async function clickhouseQuery(websiteId: string, sessionId: string) {
     `,
     { websiteId, sessionId },
     FUNCTION_NAME,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 }

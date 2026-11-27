@@ -1,7 +1,7 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
 export interface FunnelStepFilter {
   property: string;
@@ -31,7 +31,11 @@ export interface FunnelResult extends FunnelStep {
 }
 
 export async function getFunnel(
-  ...args: [websiteId: string, parameters: FunnelParameters, filters: QueryFilters]
+  ...args: [
+    websiteId: string,
+    parameters: FunnelParameters,
+    filters: QueryFilters,
+  ]
 ) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -46,13 +50,17 @@ async function relationalQuery(
 ): Promise<Array<FunnelResult>> {
   const { startDate, endDate, window, steps } = parameters;
   const { rawQuery, getAddIntervalQuery, parseFilters } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-    startDate,
-    endDate,
-  });
-  const { levelOneQuery, levelQuery, sumQuery, params } = getFunnelQuery(steps, window);
+  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+      startDate,
+      endDate,
+    });
+  const { levelOneQuery, levelQuery, sumQuery, params } = getFunnelQuery(
+    steps,
+    window,
+  );
 
   function buildExistsFilters(
     stepIndex: number,
@@ -60,7 +68,7 @@ async function relationalQuery(
     eventAlias: string,
     extraParams: Record<string, string>,
   ): string {
-    if (!stepFilters?.length) return '';
+    if (!stepFilters?.length) return "";
 
     return stepFilters
       .map((f, fi) => {
@@ -68,14 +76,14 @@ async function relationalQuery(
         const valParam = `f_${stepIndex}_${fi}_v`;
         extraParams[keyParam] = f.property;
 
-        let op = '=';
+        let op = "=";
         let val = f.value;
-        if (f.operator === 'neq') op = '!=';
-        else if (f.operator === 'c') {
-          op = 'ilike';
+        if (f.operator === "neq") op = "!=";
+        else if (f.operator === "c") {
+          op = "ilike";
           val = `%${val}%`;
-        } else if (f.operator === 'dnc') {
-          op = 'not ilike';
+        } else if (f.operator === "dnc") {
+          op = "not ilike";
           val = `%${val}%`;
         }
         extraParams[valParam] = val;
@@ -89,7 +97,7 @@ async function relationalQuery(
             and case when _ed${stepIndex}_${fi}.data_type = 2 then replace(_ed${stepIndex}_${fi}.string_value, '.0000', '') else _ed${stepIndex}_${fi}.string_value end ${op} {{${valParam}}}
         )`;
       })
-      .join('\n');
+      .join("\n");
   }
 
   function getFunnelQuery(
@@ -106,16 +114,16 @@ async function relationalQuery(
     const result = steps.reduce(
       (pv, cv, i) => {
         const levelNumber = i + 1;
-        const startSum = i > 0 ? 'union ' : '';
-        const isURL = cv.type === 'path';
-        const column = isURL ? 'url_path' : 'event_name';
+        const startSum = i > 0 ? "union " : "";
+        const isURL = cv.type === "path";
+        const column = isURL ? "url_path" : "event_name";
 
-        let operator = '=';
+        let operator = "=";
         let paramValue = cv.value;
 
-        if (cv.value.startsWith('*') || cv.value.endsWith('*')) {
-          operator = 'like';
-          paramValue = cv.value.replace(/^\*|\*$/g, '%');
+        if (cv.value.startsWith("*") || cv.value.endsWith("*")) {
+          operator = "like";
+          paramValue = cv.value.replace(/^\*|\*$/g, "%");
         }
 
         const existsClause =
@@ -123,10 +131,10 @@ async function relationalQuery(
             ? buildExistsFilters(
                 i,
                 cv.filters,
-                levelNumber === 1 ? 'website_event' : 'we',
+                levelNumber === 1 ? "website_event" : "we",
                 extraParams,
               )
-            : '';
+            : "";
 
         if (levelNumber === 1) {
           pv.levelOneQuery = `
@@ -165,9 +173,9 @@ async function relationalQuery(
         return pv;
       },
       {
-        levelOneQuery: '',
-        levelQuery: '',
-        sumQuery: '',
+        levelOneQuery: "",
+        levelQuery: "",
+        sumQuery: "",
         params: {} as Record<string, string>,
       },
     );
@@ -196,10 +204,8 @@ async function clickhouseQuery(
 ): Promise<Array<FunnelResult>> {
   const { startDate, endDate, window, steps } = parameters;
   const { rawQuery, parseFilters } = clickhouse;
-  const { levelOneQuery, levelQuery, sumQuery, stepFilterQuery, params } = getFunnelQuery(
-    steps,
-    window,
-  );
+  const { levelOneQuery, levelQuery, sumQuery, stepFilterQuery, params } =
+    getFunnelQuery(steps, window);
   const { filterQuery, cohortQuery, queryParams } = parseFilters({
     ...filters,
     websiteId,
@@ -213,7 +219,7 @@ async function clickhouseQuery(
     params: Record<string, string>,
     eventAlias: string,
   ): string {
-    if (!stepFilters?.length) return '';
+    if (!stepFilters?.length) return "";
 
     return stepFilters
       .map((f, fi) => {
@@ -221,14 +227,14 @@ async function clickhouseQuery(
         const valParam = `f_${stepIndex}_${fi}_v`;
         params[keyParam] = f.property;
 
-        let op = '=';
+        let op = "=";
         let val = f.value;
-        if (f.operator === 'neq') op = '!=';
-        else if (f.operator === 'c') {
-          op = 'like';
+        if (f.operator === "neq") op = "!=";
+        else if (f.operator === "c") {
+          op = "like";
           val = `%${val}%`;
-        } else if (f.operator === 'dnc') {
-          op = 'not like';
+        } else if (f.operator === "dnc") {
+          op = "not like";
           val = `%${val}%`;
         }
         params[valParam] = val;
@@ -241,7 +247,7 @@ async function clickhouseQuery(
             and multiIf(data_type = 2, replaceAll(string_value, '.0000', ''), string_value) ${op} {${valParam}:String}
         )`;
       })
-      .join('\n');
+      .join("\n");
   }
 
   function getFunnelQuery(
@@ -259,24 +265,24 @@ async function clickhouseQuery(
     const result = steps.reduce(
       (pv, cv, i) => {
         const levelNumber = i + 1;
-        const startSum = i > 0 ? 'union all ' : '';
-        const startFilter = i > 0 ? 'or' : '';
-        const isURL = cv.type === 'path';
-        const column = isURL ? 'url_path' : 'event_name';
+        const startSum = i > 0 ? "union all " : "";
+        const startFilter = i > 0 ? "or" : "";
+        const isURL = cv.type === "path";
+        const column = isURL ? "url_path" : "event_name";
 
-        let operator = '=';
+        let operator = "=";
         let paramValue = cv.value;
 
-        if (cv.value.startsWith('*') || cv.value.endsWith('*')) {
-          operator = 'like';
-          paramValue = cv.value.replace(/^\*|\*$/g, '%');
+        if (cv.value.startsWith("*") || cv.value.endsWith("*")) {
+          operator = "like";
+          paramValue = cv.value.replace(/^\*|\*$/g, "%");
         }
 
-        const eventAlias = levelNumber === 1 ? 'level0' : 'y';
+        const eventAlias = levelNumber === 1 ? "level0" : "y";
         const eventDataClause =
           !isURL && cv.filters?.length
             ? buildEventDataFilters(i, cv.filters, extraParams, eventAlias)
-            : '';
+            : "";
 
         if (levelNumber === 1) {
           pv.levelOneQuery = `\n
@@ -311,10 +317,10 @@ async function clickhouseQuery(
         return pv;
       },
       {
-        levelOneQuery: '',
-        levelQuery: '',
-        sumQuery: '',
-        stepFilterQuery: '',
+        levelOneQuery: "",
+        levelQuery: "",
+        sumQuery: "",
+        stepFilterQuery: "",
         params: {} as Record<string, string>,
       },
     );

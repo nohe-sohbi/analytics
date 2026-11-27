@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getRevenueSessions';
+const FUNCTION_NAME = "getRevenueSessions";
 
 export async function getRevenueSessions(
   ...args: [websiteId: string, currency: string, filters: QueryFilters]
@@ -14,7 +14,11 @@ export async function getRevenueSessions(
   });
 }
 
-async function relationalQuery(websiteId: string, currency: string, filters: QueryFilters) {
+async function relationalQuery(
+  websiteId: string,
+  currency: string,
+  filters: QueryFilters,
+) {
   const { pagedRawQuery, parseFilters } = prisma;
   const { search } = filters;
   const { filterQuery, dateQuery, cohortQuery, queryParams } = parseFilters({
@@ -29,7 +33,7 @@ async function relationalQuery(websiteId: string, currency: string, filters: Que
            or session.os ilike {{search}}
            or session.device ilike {{search}}
            or session.city ilike {{search}})`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `
@@ -87,7 +91,11 @@ async function relationalQuery(websiteId: string, currency: string, filters: Que
   );
 }
 
-async function clickhouseQuery(websiteId: string, currency: string, filters: QueryFilters) {
+async function clickhouseQuery(
+  websiteId: string,
+  currency: string,
+  filters: QueryFilters,
+) {
   const { pagedRawQuery, parseFilters, getDateStringSQL } = clickhouse;
   const { search } = filters;
   const { filterQuery, dateQuery, cohortQuery, queryParams } = parseFilters({
@@ -101,7 +109,7 @@ async function clickhouseQuery(websiteId: string, currency: string, filters: Que
            or (positionCaseInsensitive(city, {search:String}) > 0)
            or (positionCaseInsensitive(os, {search:String}) > 0)
            or (positionCaseInsensitive(device, {search:String}) > 0))`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `
@@ -117,8 +125,8 @@ async function clickhouseQuery(websiteId: string, currency: string, filters: Que
       country,
       region,
       city,
-      ${getDateStringSQL('min(created_at)')} as firstAt,
-      ${getDateStringSQL('max(created_at)')} as lastAt,
+      ${getDateStringSQL("min(created_at)")} as firstAt,
+      ${getDateStringSQL("max(created_at)")} as lastAt,
       uniq(visit_id) as visits,
       sumIf(1, event_type = 1) as views,
       sumIf(1, event_type = 2) as events,

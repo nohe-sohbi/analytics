@@ -1,9 +1,9 @@
-import { subMinutes } from 'date-fns';
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
+import { subMinutes } from "date-fns";
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
 
-const FUNCTION_NAME = 'getActiveVisitors';
+const FUNCTION_NAME = "getActiveVisitors";
 
 export async function getActiveVisitors(...args: [websiteId: string]) {
   return runQuery({

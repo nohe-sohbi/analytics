@@ -1,4 +1,4 @@
-import { randomInt, type WeightedOption, weightedRandom } from '../utils.js';
+import { randomInt, type WeightedOption, weightedRandom } from "../utils.js";
 
 const hourlyWeights: WeightedOption<number>[] = [
   { value: 0, weight: 0.02 },
@@ -42,7 +42,8 @@ export function getWeightedHour(): number {
 }
 
 export function getDayOfWeekMultiplier(dayOfWeek: number): number {
-  const weight = dayOfWeekWeights.find(d => d.value === dayOfWeek)?.weight ?? 0.14;
+  const weight =
+    dayOfWeekWeights.find((d) => d.value === dayOfWeek)?.weight ?? 0.14;
   return weight / 0.14; // Normalize around 1.0
 }
 

@@ -1,7 +1,7 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
 export interface PerformanceStatsResult {
   lcp: number;
@@ -12,7 +12,9 @@ export interface PerformanceStatsResult {
   count: number;
 }
 
-export async function getPerformanceStats(...args: [websiteId: string, filters: QueryFilters]) {
+export async function getPerformanceStats(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -24,10 +26,11 @@ async function relationalQuery(
   filters: QueryFilters,
 ): Promise<PerformanceStatsResult> {
   const { rawQuery, parseFilters } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   const result = await rawQuery(
     `
@@ -57,7 +60,10 @@ async function clickhouseQuery(
   filters: QueryFilters,
 ): Promise<PerformanceStatsResult> {
   const { rawQuery, parseFilters } = clickhouse;
-  const { filterQuery, cohortQuery, queryParams } = parseFilters({ ...filters, websiteId });
+  const { filterQuery, cohortQuery, queryParams } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   const result = await rawQuery<PerformanceStatsResult>(
     `

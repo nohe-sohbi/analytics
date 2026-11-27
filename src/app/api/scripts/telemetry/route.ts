@@ -1,14 +1,14 @@
-import { CURRENT_VERSION, TELEMETRY_PIXEL } from '@/lib/constants';
+import { CURRENT_VERSION, TELEMETRY_PIXEL } from "@/lib/constants";
 
 export async function GET() {
   if (
-    process.env.NODE_ENV !== 'production' ||
+    process.env.NODE_ENV !== "production" ||
     process.env.DISABLE_TELEMETRY ||
     process.env.PRIVATE_MODE
   ) {
-    return new Response('/* telemetry disabled */', {
+    return new Response("/* telemetry disabled */", {
       headers: {
-        'content-type': 'text/javascript',
+        "content-type": "text/javascript",
       },
     });
   }
@@ -20,9 +20,9 @@ export async function GET() {
       document.body.appendChild(i);})();
   `;
 
-  return new Response(script.replace(/\s\s+/g, ''), {
+  return new Response(script.replace(/\s\s+/g, ""), {
     headers: {
-      'content-type': 'text/javascript',
+      "content-type": "text/javascript",
     },
   });
 }

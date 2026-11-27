@@ -1,5 +1,5 @@
-import { randomFloat, uuid } from '../utils.js';
-import type { EventData } from './events.js';
+import { randomFloat, uuid } from "../utils.js";
+import type { EventData } from "./events.js";
 
 export interface RevenueConfig {
   eventName: string;
@@ -20,7 +20,10 @@ export interface RevenueData {
   createdAt: Date;
 }
 
-export function generateRevenue(event: EventData, config: RevenueConfig): RevenueData | null {
+export function generateRevenue(
+  event: EventData,
+  config: RevenueConfig,
+): RevenueData | null {
   if (event.eventName !== config.eventName) {
     return null;
   }

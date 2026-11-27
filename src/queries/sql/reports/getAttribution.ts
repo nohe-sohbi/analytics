@@ -1,8 +1,8 @@
-import clickhouse from '@/lib/clickhouse';
-import { EVENT_TYPE } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { EVENT_TYPE } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
 export interface AttributionParameters {
   startDate: Date;
@@ -24,7 +24,11 @@ export interface AttributionResult {
 }
 
 export async function getAttribution(
-  ...args: [websiteId: string, parameters: AttributionParameters, filters: QueryFilters]
+  ...args: [
+    websiteId: string,
+    parameters: AttributionParameters,
+    filters: QueryFilters,
+  ]
 ) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -39,14 +43,16 @@ async function relationalQuery(
 ): Promise<AttributionResult> {
   const { model, type } = parameters;
   const { rawQuery, parseFilters } = prisma;
-  const eventType = type === 'path' ? EVENT_TYPE.pageView : EVENT_TYPE.customEvent;
-  const column = type === 'path' ? 'url_path' : 'event_name';
-  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } = parseFilters({
-    ...filters,
-    ...parameters,
-    websiteId,
-    eventType,
-  });
+  const eventType =
+    type === "path" ? EVENT_TYPE.pageView : EVENT_TYPE.customEvent;
+  const column = type === "path" ? "url_path" : "event_name";
+  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      ...parameters,
+      websiteId,
+      eventType,
+    });
 
   function getUTMQuery(utmColumn: string) {
     return `
@@ -79,7 +85,7 @@ async function relationalQuery(
         group by 1),`;
 
   function getModelQuery(model: string) {
-    return model === 'first-click'
+    return model === "first-click"
       ? `\n
     model AS (select e.session_id,
         min(we.created_at) created_at
@@ -160,7 +166,7 @@ async function relationalQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_source')}
+    ${getUTMQuery("utm_source")}
     `,
     queryParams,
   );
@@ -169,7 +175,7 @@ async function relationalQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_medium')}
+    ${getUTMQuery("utm_medium")}
     `,
     queryParams,
   );
@@ -178,7 +184,7 @@ async function relationalQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_campaign')}
+    ${getUTMQuery("utm_campaign")}
     `,
     queryParams,
   );
@@ -187,7 +193,7 @@ async function relationalQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_content')}
+    ${getUTMQuery("utm_content")}
     `,
     queryParams,
   );
@@ -196,7 +202,7 @@ async function relationalQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_term')}
+    ${getUTMQuery("utm_term")}
     `,
     queryParams,
   );
@@ -216,7 +222,7 @@ async function relationalQuery(
         ${filterQuery}
     `,
     queryParams,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 
   return {
     referrer: referrerRes,
@@ -237,8 +243,9 @@ async function clickhouseQuery(
 ): Promise<AttributionResult> {
   const { model, type } = parameters;
   const { rawQuery, parseFilters } = clickhouse;
-  const eventType = type === 'path' ? EVENT_TYPE.pageView : EVENT_TYPE.customEvent;
-  const column = type === 'path' ? 'url_path' : 'event_name';
+  const eventType =
+    type === "path" ? EVENT_TYPE.pageView : EVENT_TYPE.customEvent;
+  const column = type === "path" ? "url_path" : "event_name";
   const { filterQuery, cohortQuery, queryParams } = parseFilters({
     ...filters,
     ...parameters,
@@ -268,7 +275,7 @@ async function clickhouseQuery(
   }
 
   function getModelQuery(model: string) {
-    if (model === 'first-click') {
+    if (model === "first-click") {
       return `
         model AS (select e.session_id,
             min(we.created_at) created_at
@@ -383,7 +390,7 @@ async function clickhouseQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_source')}
+    ${getUTMQuery("utm_source")}
     `,
     queryParams,
   );
@@ -397,7 +404,7 @@ async function clickhouseQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_medium')}
+    ${getUTMQuery("utm_medium")}
     `,
     queryParams,
   );
@@ -411,7 +418,7 @@ async function clickhouseQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_campaign')}
+    ${getUTMQuery("utm_campaign")}
     `,
     queryParams,
   );
@@ -425,7 +432,7 @@ async function clickhouseQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_content')}
+    ${getUTMQuery("utm_content")}
     `,
     queryParams,
   );
@@ -439,12 +446,16 @@ async function clickhouseQuery(
     `
     ${eventQuery}
     ${getModelQuery(model)}
-    ${getUTMQuery('utm_term')}
+    ${getUTMQuery("utm_term")}
     `,
     queryParams,
   );
 
-  const totalRes = await rawQuery<{ pageviews: number; visitors: number; visits: number }>(
+  const totalRes = await rawQuery<{
+    pageviews: number;
+    visitors: number;
+    visits: number;
+  }>(
     `
     select 
         count(*) as "pageviews",
@@ -458,7 +469,7 @@ async function clickhouseQuery(
         ${filterQuery}
     `,
     queryParams,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 
   return {
     referrer: referrerRes,

@@ -1,10 +1,10 @@
-import { Alert, Button, Column, Row } from '@umami/react-zen';
-import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { useMessages } from '@/components/hooks';
-import { REPO_URL, VERSION_CHECK } from '@/lib/constants';
-import { setItem } from '@/lib/storage';
-import { checkVersion, useVersion } from '@/store/version';
+import { Alert, Button, Column, Row } from "@umami/react-zen";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useMessages } from "@/components/hooks";
+import { REPO_URL, VERSION_CHECK } from "@/lib/constants";
+import { setItem } from "@/lib/storage";
+import { checkVersion, useVersion } from "@/store/version";
 
 export function UpdateNotice({ user, config }) {
   const { t, labels, messages } = useMessages();
@@ -13,11 +13,11 @@ export function UpdateNotice({ user, config }) {
   const [dismissed, setDismissed] = useState(checked);
 
   const allowUpdate =
-    process.env.NODE_ENV === 'production' &&
+    process.env.NODE_ENV === "production" &&
     user?.isAdmin &&
     !config?.updatesDisabled &&
     !config?.privateMode &&
-    !pathname.includes('/share/') &&
+    !pathname.includes("/share/") &&
     !process.env.cloudMode &&
     !dismissed;
 
@@ -28,7 +28,7 @@ export function UpdateNotice({ user, config }) {
   function handleViewClick() {
     updateCheck();
     setDismissed(true);
-    open(releaseUrl || REPO_URL, '_blank');
+    open(releaseUrl || REPO_URL, "_blank");
   }
 
   function handleDismissClick() {
@@ -47,9 +47,17 @@ export function UpdateNotice({ user, config }) {
   }
 
   return (
-    <Column justifyContent="center" alignItems="center" position="fixed" top="10px" width="100%">
+    <Column
+      justifyContent="center"
+      alignItems="center"
+      position="fixed"
+      top="10px"
+      width="100%"
+    >
       <Row width="600px">
-        <Alert title={t(messages.newVersionAvailable, { version: `v${latest}` })}>
+        <Alert
+          title={t(messages.newVersionAvailable, { version: `v${latest}` })}
+        >
           <Button variant="primary" onPress={handleViewClick}>
             {t(labels.viewDetails)}
           </Button>

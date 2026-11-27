@@ -1,10 +1,10 @@
-import clickhouse from '@/lib/clickhouse';
-import { FILTER_COLUMNS, SESSION_COLUMNS } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { FILTER_COLUMNS, SESSION_COLUMNS } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getSessionExpandedMetrics';
+const FUNCTION_NAME = "getSessionExpandedMetrics";
 
 export interface SessionExpandedMetricsParameters {
   type: string;
@@ -22,7 +22,11 @@ export interface SessionExpandedMetricsData {
 }
 
 export async function getSessionExpandedMetrics(
-  ...args: [websiteId: string, parameters: SessionExpandedMetricsParameters, filters: QueryFilters]
+  ...args: [
+    websiteId: string,
+    parameters: SessionExpandedMetricsParameters,
+    filters: QueryFilters,
+  ]
 ): Promise<SessionExpandedMetricsData[]> {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -38,19 +42,24 @@ async function relationalQuery(
   const { type, limit = 500, offset = 0 } = parameters;
   let column = FILTER_COLUMNS[type] || type;
   const { parseFilters, rawQuery, getTimestampDiffSQL } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, excludeBounceQuery, queryParams } =
-    parseFilters(
-      {
-        ...filters,
-        websiteId,
-      },
-      {
-        joinSession: SESSION_COLUMNS.includes(type),
-      },
-    );
-  const includeCountry = column === 'city' || column === 'region';
+  const {
+    filterQuery,
+    joinSessionQuery,
+    cohortQuery,
+    excludeBounceQuery,
+    queryParams,
+  } = parseFilters(
+    {
+      ...filters,
+      websiteId,
+    },
+    {
+      joinSession: SESSION_COLUMNS.includes(type),
+    },
+  );
+  const includeCountry = column === "city" || column === "region";
 
-  if (type === 'language') {
+  if (type === "language") {
     column = `lower(left(${type}, 2))`;
   }
 
@@ -58,16 +67,16 @@ async function relationalQuery(
     `
     select
       name,
-      ${includeCountry ? 'country,' : ''}
+      ${includeCountry ? "country," : ""}
       sum(t.c) as "pageviews",
       count(distinct t.session_id) as "visitors",
       count(distinct t.visit_id) as "visits",
       sum(case when t.c = 1 then 1 else 0 end) as "bounces",
-      sum(${getTimestampDiffSQL('t.min_time', 't.max_time')}) as "totaltime"
+      sum(${getTimestampDiffSQL("t.min_time", "t.max_time")}) as "totaltime"
     from (
       select
         ${column} as "name",
-        ${includeCountry ? 'country,' : ''}
+        ${includeCountry ? "country," : ""}
         website_event.session_id,
         website_event.visit_id,
         count(*) as "c",
@@ -82,11 +91,11 @@ async function relationalQuery(
         and website_event.event_type NOT IN (2, 5)
         ${filterQuery}
       group by name, website_event.session_id, website_event.visit_id
-      ${includeCountry ? ', country' : ''}
+      ${includeCountry ? ", country" : ""}
     ) as t
     where name != ''
     group by name 
-    ${includeCountry ? ', country' : ''}
+    ${includeCountry ? ", country" : ""}
     order by visitors desc, visits desc
     limit ${limit}
     offset ${offset}
@@ -104,13 +113,14 @@ async function clickhouseQuery(
   const { type, limit = 500, offset = 0 } = parameters;
   let column = FILTER_COLUMNS[type] || type;
   const { parseFilters, rawQuery } = clickhouse;
-  const { filterQuery, cohortQuery, excludeBounceQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
-  const includeCountry = column === 'city' || column === 'region';
+  const { filterQuery, cohortQuery, excludeBounceQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
+  const includeCountry = column === "city" || column === "region";
 
-  if (type === 'language') {
+  if (type === "language") {
     column = `lower(left(${type}, 2))`;
   }
 
@@ -118,7 +128,7 @@ async function clickhouseQuery(
     `
     select
       name,
-      ${includeCountry ? 'country,' : ''}
+      ${includeCountry ? "country," : ""}
       sum(t.c) as "pageviews",
       uniq(t.session_id) as "visitors",
       uniq(t.visit_id) as "visits",
@@ -127,7 +137,7 @@ async function clickhouseQuery(
     from (
       select
         ${column} name,
-        ${includeCountry ? 'country,' : ''}
+        ${includeCountry ? "country," : ""}
         session_id,
         visit_id,
         count(*) c,
@@ -142,10 +152,10 @@ async function clickhouseQuery(
         and name != ''
         ${filterQuery}
       group by name, session_id, visit_id
-      ${includeCountry ? ', country' : ''}
+      ${includeCountry ? ", country" : ""}
     ) as t
     group by name 
-    ${includeCountry ? ', country' : ''}
+    ${includeCountry ? ", country" : ""}
     order by visitors desc, visits desc
     limit ${limit}
     offset ${offset}

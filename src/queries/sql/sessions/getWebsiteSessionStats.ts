@@ -1,10 +1,10 @@
-import clickhouse from '@/lib/clickhouse';
-import { EVENT_COLUMNS } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { EVENT_COLUMNS } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getWebsiteSessionStats';
+const FUNCTION_NAME = "getWebsiteSessionStats";
 
 export interface WebsiteSessionStatsData {
   pageviews: number;
@@ -59,11 +59,14 @@ async function clickhouseQuery(
   filters: QueryFilters,
 ): Promise<WebsiteSessionStatsData[]> {
   const { rawQuery, parseFilters } = clickhouse;
-  const { filterQuery, cohortQuery, queryParams } = parseFilters({ ...filters, websiteId });
+  const { filterQuery, cohortQuery, queryParams } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
-  let sql = '';
+  let sql = "";
 
-  if (EVENT_COLUMNS.some(item => Object.keys(filters).includes(item))) {
+  if (EVENT_COLUMNS.some((item) => Object.keys(filters).includes(item))) {
     sql = `
     select
       sumIf(1, event_type = 1) as "pageviews",

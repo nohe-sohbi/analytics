@@ -1,12 +1,15 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getSessionDataValues';
+const FUNCTION_NAME = "getSessionDataValues";
 
 export async function getSessionDataValues(
-  ...args: [websiteId: string, filters: QueryFilters & { propertyName?: string }]
+  ...args: [
+    websiteId: string,
+    filters: QueryFilters & { propertyName?: string },
+  ]
 ) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -19,17 +22,18 @@ async function relationalQuery(
   filters: QueryFilters & { propertyName?: string },
 ) {
   const { rawQuery, parseFilters, getDateSQL } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   return rawQuery(
     `
     select
       case 
         when data_type = 2 then replace(string_value, '.0000', '') 
-        when data_type = 4 then ${getDateSQL('date_value', 'hour')} 
+        when data_type = 4 then ${getDateSQL("date_value", "hour")} 
         else string_value
       end as "value",
       count(distinct session_data.session_id) as "total"
@@ -55,9 +59,19 @@ async function relationalQuery(
 async function clickhouseQuery(
   websiteId: string,
   filters: QueryFilters & { propertyName?: string },
-): Promise<{ propertyName: string; dataType: number; propertyValue: string; total: number }[]> {
+): Promise<
+  {
+    propertyName: string;
+    dataType: number;
+    propertyValue: string;
+    total: number;
+  }[]
+> {
   const { rawQuery, parseFilters } = clickhouse;
-  const { filterQuery, cohortQuery, queryParams } = parseFilters({ ...filters, websiteId });
+  const { filterQuery, cohortQuery, queryParams } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   return rawQuery(
     `

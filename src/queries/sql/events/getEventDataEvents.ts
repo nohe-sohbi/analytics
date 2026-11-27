@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getEventDataEvents';
+const FUNCTION_NAME = "getEventDataEvents";
 
 export interface WebsiteEventData {
   eventName?: string;
@@ -25,10 +25,11 @@ export async function getEventDataEvents(
 async function relationalQuery(websiteId: string, filters: QueryFilters) {
   const { rawQuery, parseFilters } = prisma;
   const { event } = filters;
-  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   if (event) {
     return rawQuery(
@@ -80,7 +81,9 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
 async function clickhouseQuery(
   websiteId: string,
   filters: QueryFilters,
-): Promise<{ eventName: string; propertyName: string; dataType: number; total: number }[]> {
+): Promise<
+  { eventName: string; propertyName: string; dataType: number; total: number }[]
+> {
   const { rawQuery, parseFilters } = clickhouse;
   const { event } = filters;
   const { filterQuery, cohortQuery, queryParams } = parseFilters({

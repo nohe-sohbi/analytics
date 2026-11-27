@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getSessionActivity';
+const FUNCTION_NAME = "getSessionActivity";
 
 export async function getSessionActivity(
   ...args: [websiteId: string, sessionId: string, filters: QueryFilters]
@@ -14,7 +14,11 @@ export async function getSessionActivity(
   });
 }
 
-async function relationalQuery(websiteId: string, sessionId: string, filters: QueryFilters) {
+async function relationalQuery(
+  websiteId: string,
+  sessionId: string,
+  filters: QueryFilters,
+) {
   const { rawQuery } = prisma;
   const { startDate, endDate } = filters;
 
@@ -46,7 +50,11 @@ async function relationalQuery(websiteId: string, sessionId: string, filters: Qu
   );
 }
 
-async function clickhouseQuery(websiteId: string, sessionId: string, filters: QueryFilters) {
+async function clickhouseQuery(
+  websiteId: string,
+  sessionId: string,
+  filters: QueryFilters,
+) {
   const { rawQuery } = clickhouse;
   const { startDate, endDate } = filters;
 

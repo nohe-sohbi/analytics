@@ -1,7 +1,7 @@
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 const testNavigation = vi.hoisted(() => ({
-  pathname: '/',
+  pathname: "/",
   searchParams: new URLSearchParams(),
   router: {
     back: vi.fn(),
@@ -14,12 +14,16 @@ const testNavigation = vi.hoisted(() => ({
 }));
 
 export function setTestUrl(url: string) {
-  const nextUrl = new URL(url, 'http://localhost');
+  const nextUrl = new URL(url, "http://localhost");
 
   testNavigation.pathname = nextUrl.pathname;
   testNavigation.searchParams = nextUrl.searchParams;
 
-  window.history.pushState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+  window.history.pushState(
+    {},
+    "",
+    `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+  );
 }
 
 export function getTestRouter() {
@@ -27,14 +31,14 @@ export function getTestRouter() {
 }
 
 export function resetTestNavigation() {
-  setTestUrl('/');
+  setTestUrl("/");
 
-  Object.values(testNavigation.router).forEach(mock => {
+  Object.values(testNavigation.router).forEach((mock) => {
     mock.mockReset();
   });
 }
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   notFound: vi.fn(),
   redirect: vi.fn(),
   usePathname: () => testNavigation.pathname,

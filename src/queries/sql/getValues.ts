@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getValues';
+const FUNCTION_NAME = "getValues";
 
 export async function getValues(
   ...args: [websiteId: string, column: string, filters: QueryFilters]
@@ -14,32 +14,36 @@ export async function getValues(
   });
 }
 
-async function relationalQuery(websiteId: string, column: string, filters: QueryFilters) {
+async function relationalQuery(
+  websiteId: string,
+  column: string,
+  filters: QueryFilters,
+) {
   const { rawQuery, getSearchSQL } = prisma;
   const params = {};
   const { startDate, endDate, search } = filters;
 
-  let searchQuery = '';
-  let excludeDomain = '';
+  let searchQuery = "";
+  let excludeDomain = "";
 
-  if (column === 'referrer_domain') {
+  if (column === "referrer_domain") {
     excludeDomain = `and website_event.referrer_domain != regexp_replace(website_event.hostname, '^www.', '')
       and website_event.referrer_domain != ''`;
   }
 
   if (search) {
-    if (decodeURIComponent(search).includes(',')) {
+    if (decodeURIComponent(search).includes(",")) {
       searchQuery = `AND (${decodeURIComponent(search)
-        .split(',')
+        .split(",")
         .slice(0, 5)
         .map((value: string, index: number) => {
           const key = `search${index}`;
 
           params[key] = value;
 
-          return getSearchSQL(column, key).replace('and ', '');
+          return getSearchSQL(column, key).replace("and ", "");
         })
-        .join(' OR ')})`;
+        .join(" OR ")})`;
     } else {
       searchQuery = getSearchSQL(column);
     }
@@ -71,15 +75,19 @@ async function relationalQuery(websiteId: string, column: string, filters: Query
   );
 }
 
-async function clickhouseQuery(websiteId: string, column: string, filters: QueryFilters) {
+async function clickhouseQuery(
+  websiteId: string,
+  column: string,
+  filters: QueryFilters,
+) {
   const { rawQuery, getSearchSQL } = clickhouse;
   const params = {};
   const { startDate, endDate, search } = filters;
 
-  let searchQuery = '';
-  let excludeDomain = '';
+  let searchQuery = "";
+  let excludeDomain = "";
 
-  if (column === 'referrer_domain') {
+  if (column === "referrer_domain") {
     excludeDomain = `and referrer_domain != hostname and referrer_domain != ''`;
   }
 
@@ -88,18 +96,18 @@ async function clickhouseQuery(websiteId: string, column: string, filters: Query
   }
 
   if (search) {
-    if (decodeURIComponent(search).includes(',')) {
+    if (decodeURIComponent(search).includes(",")) {
       searchQuery = `AND (${decodeURIComponent(search)
-        .split(',')
+        .split(",")
         .slice(0, 5)
         .map((value: string, index: number) => {
           const key = `search${index}`;
 
           params[key] = value;
 
-          return getSearchSQL(column, key).replace('and ', '');
+          return getSearchSQL(column, key).replace("and ", "");
         })
-        .join(' OR ')})`;
+        .join(" OR ")})`;
     } else {
       searchQuery = getSearchSQL(column);
     }

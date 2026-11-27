@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export interface WeightedOption<T> {
   value: T;
@@ -77,9 +77,13 @@ export function formatNumber(num: number): string {
   return num.toLocaleString();
 }
 
-export function progressBar(current: number, total: number, width = 30): string {
+export function progressBar(
+  current: number,
+  total: number,
+  width = 30,
+): string {
   const percent = current / total;
   const filled = Math.round(width * percent);
   const empty = width - filled;
-  return `[${'█'.repeat(filled)}${'░'.repeat(empty)}] ${Math.round(percent * 100)}%`;
+  return `[${"█".repeat(filled)}${"░".repeat(empty)}] ${Math.round(percent * 100)}%`;
 }

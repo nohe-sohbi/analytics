@@ -1,6 +1,6 @@
-import { getRandomReferrer } from '../distributions/referrers.js';
-import { addSeconds, randomInt, uuid } from '../utils.js';
-import type { SessionData } from './sessions.js';
+import { getRandomReferrer } from "../distributions/referrers.js";
+import { addSeconds, randomInt, uuid } from "../utils.js";
+import type { SessionData } from "./sessions.js";
 
 export const EVENT_TYPE = {
   pageView: 1,
@@ -70,12 +70,12 @@ export interface SiteConfig {
 }
 
 function getPageTitle(pages: PageConfig[], path: string): string | null {
-  const page = pages.find(p => p.path === path);
+  const page = pages.find((p) => p.path === path);
   return page?.title ?? null;
 }
 
 function getPageTimeOnPage(pages: PageConfig[], path: string): number {
-  const page = pages.find(p => p.path === path);
+  const page = pages.find((p) => p.path === path);
   return page?.avgTimeOnPage ?? 30;
 }
 
@@ -162,7 +162,7 @@ export function generateEventsForSession(
         if (customEvent.data) {
           for (const [key, values] of Object.entries(customEvent.data)) {
             const value = values[Math.floor(Math.random() * values.length)];
-            const isNumber = typeof value === 'number';
+            const isNumber = typeof value === "number";
 
             eventDataEntries.push({
               id: uuid(),
