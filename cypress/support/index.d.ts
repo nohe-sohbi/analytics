@@ -36,7 +36,11 @@ declare namespace Cypress {
      * Custom command to create a user
      * @example cy.addUser('cypress', 'password', 'User')
      */
-    addUser(username: string, password: string, role: string): Chainable<JQuery<HTMLElement>>;
+    addUser(
+      username: string,
+      password: string,
+      role: string,
+    ): Chainable<JQuery<HTMLElement>>;
     /**
      * Custom command to delete a user
      * @example cy.deleteUser('02d89813-7a72-41e1-87f0-8d668f85008b')

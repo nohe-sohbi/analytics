@@ -1,11 +1,15 @@
-import clickhouse from '@/lib/clickhouse';
-import { EVENT_NAME_LENGTH, PAGE_TITLE_LENGTH, URL_LENGTH } from '@/lib/constants';
-import { uuid } from '@/lib/crypto';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import kafka from '@/lib/kafka';
-import prisma from '@/lib/prisma';
-import { saveEventData } from './saveEventData';
-import { saveRevenue } from './saveRevenue';
+import clickhouse from "@/lib/clickhouse";
+import {
+  EVENT_NAME_LENGTH,
+  PAGE_TITLE_LENGTH,
+  URL_LENGTH,
+} from "@/lib/constants";
+import { uuid } from "@/lib/crypto";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import kafka from "@/lib/kafka";
+import prisma from "@/lib/prisma";
+import { saveEventData } from "./saveEventData";
+import { saveRevenue } from "./saveRevenue";
 
 export interface SaveEventArgs {
   websiteId: string;
@@ -219,7 +223,12 @@ async function clickhouseQuery({
     visit_id: visitId,
     event_id: eventId,
     country: country,
-    region: country && region ? (region.includes('-') ? region : `${country}-${region}`) : null,
+    region:
+      country && region
+        ? region.includes("-")
+          ? region
+          : `${country}-${region}`
+        : null,
     city: city,
     url_path: urlPath?.substring(0, URL_LENGTH),
     url_query: urlQuery?.substring(0, URL_LENGTH),
@@ -257,9 +266,9 @@ async function clickhouseQuery({
   };
 
   if (kafka.enabled) {
-    await sendMessage('event', message);
+    await sendMessage("event", message);
   } else {
-    await insert('website_event', [message]);
+    await insert("website_event", [message]);
   }
 
   if (eventData) {

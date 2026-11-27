@@ -1,11 +1,13 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getWebsiteEvents';
+const FUNCTION_NAME = "getWebsiteEvents";
 
-export function getWebsiteEvents(...args: [websiteId: string, filters: QueryFilters]) {
+export function getWebsiteEvents(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -23,7 +25,7 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
   const searchQuery = search
     ? `and ((event_name ilike {{search}} and event_type = 2)
            or (url_path ilike {{search}} and event_type = 1))`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `
@@ -77,7 +79,7 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters) {
   const searchQuery = search
     ? `and ((positionCaseInsensitive(event_name, {search:String}) > 0 and event_type = 2)
            or (positionCaseInsensitive(url_path, {search:String}) > 0 and event_type = 1))`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `

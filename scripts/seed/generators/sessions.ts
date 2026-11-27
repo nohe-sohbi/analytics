@@ -1,7 +1,10 @@
-import { getRandomDevice } from '../distributions/devices.js';
-import { getRandomGeo, getRandomLanguage } from '../distributions/geographic.js';
-import { generateTimestampForDay } from '../distributions/temporal.js';
-import { uuid } from '../utils.js';
+import { getRandomDevice } from "../distributions/devices.js";
+import {
+  getRandomGeo,
+  getRandomLanguage,
+} from "../distributions/geographic.js";
+import { generateTimestampForDay } from "../distributions/temporal.js";
+import { uuid } from "../utils.js";
 
 export interface SessionData {
   id: string;
@@ -38,7 +41,11 @@ export function createSession(websiteId: string, day: Date): SessionData {
   };
 }
 
-export function createSessions(websiteId: string, day: Date, count: number): SessionData[] {
+export function createSessions(
+  websiteId: string,
+  day: Date,
+  count: number,
+): SessionData[] {
   const sessions: SessionData[] = [];
 
   for (let i = 0; i < count; i++) {

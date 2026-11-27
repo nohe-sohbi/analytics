@@ -1,12 +1,14 @@
-import clickhouse from '@/lib/clickhouse';
-import { EVENT_COLUMNS } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { EVENT_COLUMNS } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getPageviewStats';
+const FUNCTION_NAME = "getPageviewStats";
 
-export async function getPageviewStats(...args: [websiteId: string, filters: QueryFilters]) {
+export async function getPageviewStats(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -14,18 +16,23 @@ export async function getPageviewStats(...args: [websiteId: string, filters: Que
 }
 
 async function relationalQuery(websiteId: string, filters: QueryFilters) {
-  const { timezone = 'utc', unit = 'day' } = filters;
+  const { timezone = "utc", unit = "day" } = filters;
   const { getDateSQL, parseFilters, rawQuery } = prisma;
-  const { filterQuery, cohortQuery, excludeBounceQuery, joinSessionQuery, queryParams } =
-    parseFilters({
-      ...filters,
-      websiteId,
-    });
+  const {
+    filterQuery,
+    cohortQuery,
+    excludeBounceQuery,
+    joinSessionQuery,
+    queryParams,
+  } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   return rawQuery(
     `
     select
-      ${getDateSQL('website_event.created_at', unit, timezone)} x,
+      ${getDateSQL("website_event.created_at", unit, timezone)} x,
       count(*) y
     from website_event
     ${cohortQuery}
@@ -47,23 +54,27 @@ async function clickhouseQuery(
   websiteId: string,
   filters: QueryFilters,
 ): Promise<{ x: string; y: number }[]> {
-  const { timezone = 'UTC', unit = 'day' } = filters;
+  const { timezone = "UTC", unit = "day" } = filters;
   const { parseFilters, rawQuery, getDateSQL } = clickhouse;
-  const { filterQuery, cohortQuery, excludeBounceQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, cohortQuery, excludeBounceQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
-  let sql = '';
+  let sql = "";
 
-  if (EVENT_COLUMNS.some(item => Object.keys(filters).includes(item)) || unit === 'minute') {
+  if (
+    EVENT_COLUMNS.some((item) => Object.keys(filters).includes(item)) ||
+    unit === "minute"
+  ) {
     sql = `
     select
       g.t as x,
       g.y as y
     from (
       select
-        ${getDateSQL('website_event.created_at', unit, timezone)} as t,
+        ${getDateSQL("website_event.created_at", unit, timezone)} as t,
         count(*) as y
       from website_event
       ${cohortQuery}
@@ -83,7 +94,7 @@ async function clickhouseQuery(
       g.y as y
     from (
       select
-        ${getDateSQL('website_event.created_at', unit, timezone)} as t,
+        ${getDateSQL("website_event.created_at", unit, timezone)} as t,
         sum(views) as y
       from website_event_stats_hourly as website_event
       ${cohortQuery}

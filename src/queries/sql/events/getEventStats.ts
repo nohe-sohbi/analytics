@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getEventStats';
+const FUNCTION_NAME = "getEventStats";
 
 export interface EventStatsParameters {
   limit?: number | string;
@@ -16,7 +16,11 @@ interface WebsiteEventMetric {
 }
 
 export async function getEventStats(
-  ...args: [websiteId: string, parameters: EventStatsParameters, filters: QueryFilters]
+  ...args: [
+    websiteId: string,
+    parameters: EventStatsParameters,
+    filters: QueryFilters,
+  ]
 ): Promise<WebsiteEventMetric[]> {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -30,12 +34,13 @@ async function relationalQuery(
   filters: QueryFilters,
 ) {
   const { limit } = parameters;
-  const { timezone = 'utc', unit = 'day' } = filters;
+  const { timezone = "utc", unit = "day" } = filters;
   const { rawQuery, getDateSQL, parseFilters } = prisma;
-  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   const limitQuery = limit
     ? `and event_name in (
@@ -48,13 +53,13 @@ async function relationalQuery(
     order by count(*) desc
     limit ${limit}
   )`
-    : '';
+    : "";
 
   return rawQuery(
     `
     select
       event_name x,
-      ${getDateSQL('website_event.created_at', unit, timezone)} t,
+      ${getDateSQL("website_event.created_at", unit, timezone)} t,
       count(*) y
     from website_event
     ${cohortQuery}
@@ -78,7 +83,7 @@ async function clickhouseQuery(
   filters: QueryFilters,
 ): Promise<{ x: string; t: string; y: number }[]> {
   const { limit } = parameters;
-  const { timezone = 'UTC', unit = 'day' } = filters;
+  const { timezone = "UTC", unit = "day" } = filters;
   const { rawQuery, getDateSQL, parseFilters } = clickhouse;
   const { filterQuery, cohortQuery, queryParams } = parseFilters({
     ...filters,
@@ -96,15 +101,15 @@ async function clickhouseQuery(
     order by count(*) desc
     limit ${limit}
   )`
-    : '';
+    : "";
 
-  let sql = '';
+  let sql = "";
 
   if (filterQuery || cohortQuery) {
     sql = `
     select
       event_name x,
-      ${getDateSQL('created_at', unit, timezone)} t,
+      ${getDateSQL("created_at", unit, timezone)} t,
       count(*) y
     from website_event
     ${cohortQuery}
@@ -120,7 +125,7 @@ async function clickhouseQuery(
     sql = `
     select
       event_name x,
-      ${getDateSQL('created_at', unit, timezone)} t,
+      ${getDateSQL("created_at", unit, timezone)} t,
       count(*) y
     from (
       select arrayJoin(event_name) as event_name,

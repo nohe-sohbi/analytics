@@ -1,6 +1,16 @@
-import { pickRandom, randomInt, type WeightedOption, weightedRandom } from '../utils.js';
+import {
+  pickRandom,
+  randomInt,
+  type WeightedOption,
+  weightedRandom,
+} from "../utils.js";
 
-export type ReferrerType = 'direct' | 'organic' | 'social' | 'paid' | 'referral';
+export type ReferrerType =
+  | "direct"
+  | "organic"
+  | "social"
+  | "paid"
+  | "referral";
 
 export interface ReferrerInfo {
   type: ReferrerType;
@@ -16,39 +26,39 @@ export interface ReferrerInfo {
 }
 
 const referrerTypeWeights: WeightedOption<ReferrerType>[] = [
-  { value: 'direct', weight: 0.4 },
-  { value: 'organic', weight: 0.25 },
-  { value: 'social', weight: 0.15 },
-  { value: 'paid', weight: 0.1 },
-  { value: 'referral', weight: 0.1 },
+  { value: "direct", weight: 0.4 },
+  { value: "organic", weight: 0.25 },
+  { value: "social", weight: 0.15 },
+  { value: "paid", weight: 0.1 },
+  { value: "referral", weight: 0.1 },
 ];
 
 const searchEngines = [
-  { domain: 'google.com', path: '/search' },
-  { domain: 'bing.com', path: '/search' },
-  { domain: 'duckduckgo.com', path: '/' },
-  { domain: 'yahoo.com', path: '/search' },
-  { domain: 'baidu.com', path: '/s' },
+  { domain: "google.com", path: "/search" },
+  { domain: "bing.com", path: "/search" },
+  { domain: "duckduckgo.com", path: "/" },
+  { domain: "yahoo.com", path: "/search" },
+  { domain: "baidu.com", path: "/s" },
 ];
 
 const socialPlatforms = [
-  { domain: 'twitter.com', path: null },
-  { domain: 'x.com', path: null },
-  { domain: 'linkedin.com', path: '/feed' },
-  { domain: 'facebook.com', path: null },
-  { domain: 'reddit.com', path: '/r/programming' },
-  { domain: 'news.ycombinator.com', path: '/item' },
-  { domain: 'threads.net', path: null },
-  { domain: 'bsky.app', path: null },
+  { domain: "twitter.com", path: null },
+  { domain: "x.com", path: null },
+  { domain: "linkedin.com", path: "/feed" },
+  { domain: "facebook.com", path: null },
+  { domain: "reddit.com", path: "/r/programming" },
+  { domain: "news.ycombinator.com", path: "/item" },
+  { domain: "threads.net", path: null },
+  { domain: "bsky.app", path: null },
 ];
 
 const referralSites = [
-  { domain: 'medium.com', path: '/@author/article' },
-  { domain: 'dev.to', path: '/post' },
-  { domain: 'hashnode.com', path: '/blog' },
-  { domain: 'techcrunch.com', path: '/article' },
-  { domain: 'producthunt.com', path: '/posts' },
-  { domain: 'indiehackers.com', path: '/post' },
+  { domain: "medium.com", path: "/@author/article" },
+  { domain: "dev.to", path: "/post" },
+  { domain: "hashnode.com", path: "/blog" },
+  { domain: "techcrunch.com", path: "/article" },
+  { domain: "producthunt.com", path: "/posts" },
+  { domain: "indiehackers.com", path: "/post" },
 ];
 
 interface PaidCampaign {
@@ -60,23 +70,39 @@ interface PaidCampaign {
 }
 
 const paidCampaigns: PaidCampaign[] = [
-  { source: 'google', medium: 'cpc', campaign: 'brand_search', useGclid: true },
-  { source: 'google', medium: 'cpc', campaign: 'product_awareness', useGclid: true },
-  { source: 'facebook', medium: 'paid_social', campaign: 'retargeting', useFbclid: true },
-  { source: 'facebook', medium: 'paid_social', campaign: 'lookalike', useFbclid: true },
-  { source: 'linkedin', medium: 'cpc', campaign: 'b2b_targeting' },
-  { source: 'twitter', medium: 'paid_social', campaign: 'launch_promo' },
+  { source: "google", medium: "cpc", campaign: "brand_search", useGclid: true },
+  {
+    source: "google",
+    medium: "cpc",
+    campaign: "product_awareness",
+    useGclid: true,
+  },
+  {
+    source: "facebook",
+    medium: "paid_social",
+    campaign: "retargeting",
+    useFbclid: true,
+  },
+  {
+    source: "facebook",
+    medium: "paid_social",
+    campaign: "lookalike",
+    useFbclid: true,
+  },
+  { source: "linkedin", medium: "cpc", campaign: "b2b_targeting" },
+  { source: "twitter", medium: "paid_social", campaign: "launch_promo" },
 ];
 
 const organicCampaigns = [
-  { source: 'newsletter', medium: 'email', campaign: 'weekly_digest' },
-  { source: 'newsletter', medium: 'email', campaign: 'product_update' },
-  { source: 'partner', medium: 'referral', campaign: 'integration_launch' },
+  { source: "newsletter", medium: "email", campaign: "weekly_digest" },
+  { source: "newsletter", medium: "email", campaign: "product_update" },
+  { source: "partner", medium: "referral", campaign: "integration_launch" },
 ];
 
 function generateClickId(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < 32; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -100,31 +126,33 @@ export function getRandomReferrer(): ReferrerInfo {
   };
 
   switch (type) {
-    case 'direct':
+    case "direct":
       // No referrer data
       break;
 
-    case 'organic': {
+    case "organic": {
       const engine = pickRandom(searchEngines);
       result.domain = engine.domain;
       result.path = engine.path;
       break;
     }
 
-    case 'social': {
+    case "social": {
       const platform = pickRandom(socialPlatforms);
       result.domain = platform.domain;
       result.path = platform.path;
 
       // Some social traffic has UTM params
       if (Math.random() < 0.3) {
-        result.utmSource = platform.domain.replace('.com', '').replace('.net', '');
-        result.utmMedium = 'social';
+        result.utmSource = platform.domain
+          .replace(".com", "")
+          .replace(".net", "");
+        result.utmMedium = "social";
       }
       break;
     }
 
-    case 'paid': {
+    case "paid": {
       const campaign = pickRandom(paidCampaigns);
       result.utmSource = campaign.source;
       result.utmMedium = campaign.medium;
@@ -133,17 +161,17 @@ export function getRandomReferrer(): ReferrerInfo {
 
       if (campaign.useGclid) {
         result.gclid = generateClickId();
-        result.domain = 'google.com';
-        result.path = '/search';
+        result.domain = "google.com";
+        result.path = "/search";
       } else if (campaign.useFbclid) {
         result.fbclid = generateClickId();
-        result.domain = 'facebook.com';
+        result.domain = "facebook.com";
         result.path = null;
       }
       break;
     }
 
-    case 'referral': {
+    case "referral": {
       // Mix of pure referrals and organic campaigns
       if (Math.random() < 0.6) {
         const site = pickRandom(referralSites);

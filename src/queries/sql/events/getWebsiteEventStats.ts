@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getWebsiteEventStats';
+const FUNCTION_NAME = "getWebsiteEventStats";
 
 export interface WebsiteEventStatsData {
   events: number;
@@ -26,10 +26,11 @@ async function relationalQuery(
   filters: QueryFilters,
 ): Promise<WebsiteEventStatsData[]> {
   const { parseFilters, rawQuery } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   return rawQuery(
     `
@@ -56,7 +57,7 @@ async function relationalQuery(
     `,
     queryParams,
     FUNCTION_NAME,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 }
 
 async function clickhouseQuery(
@@ -93,5 +94,5 @@ async function clickhouseQuery(
     `,
     queryParams,
     FUNCTION_NAME,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 }

@@ -1,10 +1,10 @@
-import clickhouse from '@/lib/clickhouse';
-import { EVENT_COLUMNS } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { EVENT_COLUMNS } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getWebsiteStats';
+const FUNCTION_NAME = "getWebsiteStats";
 
 export interface WebsiteStatsData {
   pageviews: number;
@@ -28,14 +28,21 @@ async function relationalQuery(
   filters: QueryFilters,
 ): Promise<WebsiteStatsData[]> {
   const { getTimestampDiffSQL, parseFilters, rawQuery } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, excludeBounceQuery, queryParams } =
-    parseFilters({
-      ...filters,
-      websiteId,
-    });
+  const {
+    filterQuery,
+    joinSessionQuery,
+    cohortQuery,
+    excludeBounceQuery,
+    queryParams,
+  } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   const { excludeBounce } = filters;
-  const bounceQuery = excludeBounce ? '0' : 'coalesce(sum(case when t.c = 1 then 1 else 0 end), 0)';
+  const bounceQuery = excludeBounce
+    ? "0"
+    : "coalesce(sum(case when t.c = 1 then 1 else 0 end), 0)";
 
   return rawQuery(
     `
@@ -44,7 +51,7 @@ async function relationalQuery(
       count(distinct t.session_id) as "visitors",
       count(distinct t.visit_id) as "visits",
       ${bounceQuery} as "bounces",
-      cast(coalesce(sum(${getTimestampDiffSQL('t.min_time', 't.max_time')}), 0) as bigint) as "totaltime"
+      cast(coalesce(sum(${getTimestampDiffSQL("t.min_time", "t.max_time")}), 0) as bigint) as "totaltime"
     from (
       select
         website_event.session_id,
@@ -66,7 +73,7 @@ async function relationalQuery(
     `,
     queryParams,
     FUNCTION_NAME,
-  ).then(result => result?.[0]);
+  ).then((result) => result?.[0]);
 }
 
 async function clickhouseQuery(
@@ -74,16 +81,17 @@ async function clickhouseQuery(
   filters: QueryFilters,
 ): Promise<WebsiteStatsData[]> {
   const { rawQuery, parseFilters } = clickhouse;
-  const { filterQuery, cohortQuery, excludeBounceQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, cohortQuery, excludeBounceQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
-  let sql = '';
+  let sql = "";
   const { excludeBounce } = filters;
-  const bounceQuery = excludeBounce ? '0' : 'sumIf(1, t.c = 1)';
+  const bounceQuery = excludeBounce ? "0" : "sumIf(1, t.c = 1)";
 
-  if (EVENT_COLUMNS.some(item => Object.keys(filters).includes(item))) {
+  if (EVENT_COLUMNS.some((item) => Object.keys(filters).includes(item))) {
     sql = `
     select
       sum(t.c) as "pageviews",
@@ -134,5 +142,7 @@ async function clickhouseQuery(
     `;
   }
 
-  return rawQuery(sql, queryParams, FUNCTION_NAME).then(result => result?.[0]);
+  return rawQuery(sql, queryParams, FUNCTION_NAME).then(
+    (result) => result?.[0],
+  );
 }

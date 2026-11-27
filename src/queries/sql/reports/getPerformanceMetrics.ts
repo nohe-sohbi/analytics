@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { SESSION_COLUMNS } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
-import type { PerformanceParameters } from './getPerformance';
+import clickhouse from "@/lib/clickhouse";
+import { SESSION_COLUMNS } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
+import type { PerformanceParameters } from "./getPerformance";
 
 export interface PerformanceMetricsData {
   name: string;
@@ -35,12 +35,13 @@ async function relationalQuery(
   column: string,
   limit?: number,
 ): Promise<PerformanceMetricsData[]> {
-  const { startDate, endDate, metric = 'lcp' } = parameters;
+  const { startDate, endDate, metric = "lcp" } = parameters;
   const { rawQuery, parseFilters } = prisma;
-  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } = parseFilters(
-    { ...filters, websiteId },
-    { joinSession: SESSION_COLUMNS.includes(column) },
-  );
+  const { filterQuery, joinSessionQuery, cohortQuery, queryParams } =
+    parseFilters(
+      { ...filters, websiteId },
+      { joinSession: SESSION_COLUMNS.includes(column) },
+    );
 
   return rawQuery(
     `
@@ -59,7 +60,7 @@ async function relationalQuery(
       ${filterQuery}
     group by ${column}
     order by p75 desc
-    ${limit ? `limit ${limit}` : ''}
+    ${limit ? `limit ${limit}` : ""}
     `,
     { ...queryParams, startDate, endDate },
   );
@@ -72,9 +73,12 @@ async function clickhouseQuery(
   column: string,
   limit?: number,
 ): Promise<PerformanceMetricsData[]> {
-  const { startDate, endDate, metric = 'lcp' } = parameters;
+  const { startDate, endDate, metric = "lcp" } = parameters;
   const { rawQuery, parseFilters } = clickhouse;
-  const { filterQuery, cohortQuery, queryParams } = parseFilters({ ...filters, websiteId });
+  const { filterQuery, cohortQuery, queryParams } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   return rawQuery<PerformanceMetricsData[]>(
     `
@@ -92,7 +96,7 @@ async function clickhouseQuery(
       ${filterQuery}
     group by ${column}
     order by p75 desc
-    ${limit ? `limit ${limit}` : ''}
+    ${limit ? `limit ${limit}` : ""}
     `,
     { ...queryParams, startDate, endDate },
   );

@@ -1,4 +1,4 @@
-import clickhouse from '@/lib/clickhouse';
+import clickhouse from "@/lib/clickhouse";
 import {
   EMAIL_DOMAINS,
   PAID_AD_PARAMS,
@@ -6,11 +6,11 @@ import {
   SHOPPING_DOMAINS,
   SOCIAL_DOMAINS,
   VIDEO_DOMAINS,
-} from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
-import type { RevenuParameters } from './getRevenue';
+} from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
+import type { RevenuParameters } from "./getRevenue";
 
 export interface RevenueMetricsResult {
   country: { name: string; value: number }[];
@@ -20,7 +20,11 @@ export interface RevenueMetricsResult {
 }
 
 export async function getRevenueMetrics(
-  ...args: [websiteId: string, parameters: RevenuParameters, filters: QueryFilters]
+  ...args: [
+    websiteId: string,
+    parameters: RevenuParameters,
+    filters: QueryFilters,
+  ]
 ) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -35,13 +39,14 @@ async function relationalQuery(
 ): Promise<RevenueMetricsResult> {
   const { startDate, endDate, currency } = parameters;
   const { rawQuery, parseFilters } = prisma;
-  const { queryParams, filterQuery, cohortQuery, joinSessionQuery } = parseFilters({
-    ...filters,
-    websiteId,
-    startDate,
-    endDate,
-    currency,
-  });
+  const { queryParams, filterQuery, cohortQuery, joinSessionQuery } =
+    parseFilters({
+      ...filters,
+      websiteId,
+      startDate,
+      endDate,
+      currency,
+    });
 
   const joinQuery =
     filterQuery || cohortQuery
@@ -53,7 +58,7 @@ async function relationalQuery(
         on website_event.website_id = revenue.website_id
           and website_event.session_id = revenue.session_id
           and website_event.event_id = revenue.event_id`
-      : '';
+      : "";
 
   const country = await rawQuery(
     `
@@ -206,15 +211,15 @@ async function relationalQuery(
       select
         case
           when referrer_domain = '' and url_query = '' then 'direct'
-          when ${toPostgresLikeClause('url_query', PAID_AD_PARAMS)} then 'paidAds'
-          when ${toPostgresLikeClause('utm_medium', ['referral', 'app', 'link'])} then 'referral'
+          when ${toPostgresLikeClause("url_query", PAID_AD_PARAMS)} then 'paidAds'
+          when ${toPostgresLikeClause("utm_medium", ["referral", "app", "link"])} then 'referral'
           when utm_medium ilike '%affiliate%' then 'affiliate'
           when utm_medium ilike '%sms%' or utm_source ilike '%sms%' then 'sms'
-          when ${toPostgresLikeClause('referrer_domain', SEARCH_DOMAINS)} or utm_medium ilike '%organic%' then concat(prefix, 'Search')
-          when ${toPostgresLikeClause('referrer_domain', SOCIAL_DOMAINS)} then concat(prefix, 'Social')
-          when ${toPostgresLikeClause('referrer_domain', EMAIL_DOMAINS)} or utm_medium ilike '%mail%' then 'email'
-          when ${toPostgresLikeClause('referrer_domain', SHOPPING_DOMAINS)} or utm_medium ilike '%shop%' then concat(prefix, 'Shopping')
-          when ${toPostgresLikeClause('referrer_domain', VIDEO_DOMAINS)} or utm_medium ilike '%video%' then concat(prefix, 'Video')
+          when ${toPostgresLikeClause("referrer_domain", SEARCH_DOMAINS)} or utm_medium ilike '%organic%' then concat(prefix, 'Search')
+          when ${toPostgresLikeClause("referrer_domain", SOCIAL_DOMAINS)} then concat(prefix, 'Social')
+          when ${toPostgresLikeClause("referrer_domain", EMAIL_DOMAINS)} or utm_medium ilike '%mail%' then 'email'
+          when ${toPostgresLikeClause("referrer_domain", SHOPPING_DOMAINS)} or utm_medium ilike '%shop%' then concat(prefix, 'Shopping')
+          when ${toPostgresLikeClause("referrer_domain", VIDEO_DOMAINS)} or utm_medium ilike '%video%' then concat(prefix, 'Video')
           when referrer_domain != regexp_replace(hostname, '^www.', '') and referrer_domain != '' then 'referral'
           else 'Unknown' end AS "name",
         value
@@ -256,7 +261,7 @@ async function clickhouseQuery(
     on website_event.website_id = website_revenue.website_id
       and website_event.session_id = website_revenue.session_id
       and website_event.event_id = website_revenue.event_id`
-    : '';
+    : "";
 
   const country = await rawQuery<{ name: string; value: number }[]>(
     `
@@ -284,7 +289,9 @@ async function clickhouseQuery(
     queryParams,
   );
 
-  const region = await rawQuery<{ name: string; value: number; country: string }[]>(
+  const region = await rawQuery<
+    { name: string; value: number; country: string }[]
+  >(
     `
       select
         website_event.country,
@@ -443,9 +450,11 @@ async function clickhouseQuery(
 }
 
 function toClickHouseStringArray(arr: string[]): string {
-  return arr.map(p => `'${p.replace(/'/g, "\\'")}'`).join(', ');
+  return arr.map((p) => `'${p.replace(/'/g, "\\'")}'`).join(", ");
 }
 
 function toPostgresLikeClause(column: string, arr: string[]) {
-  return arr.map(val => `${column} ilike '%${val.replace(/'/g, "''")}%'`).join(' OR\n  ');
+  return arr
+    .map((val) => `${column} ilike '%${val.replace(/'/g, "''")}%'`)
+    .join(" OR\n  ");
 }

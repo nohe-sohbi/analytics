@@ -1,11 +1,11 @@
-import clickhouse from '@/lib/clickhouse';
-import { DATA_TYPE } from '@/lib/constants';
-import { uuid } from '@/lib/crypto';
-import { flattenJSON, getStringValue } from '@/lib/data';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import kafka from '@/lib/kafka';
-import prisma from '@/lib/prisma';
-import type { DynamicData } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { DATA_TYPE } from "@/lib/constants";
+import { uuid } from "@/lib/crypto";
+import { flattenJSON, getStringValue } from "@/lib/data";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import kafka from "@/lib/kafka";
+import prisma from "@/lib/prisma";
+import type { DynamicData } from "@/lib/types";
 
 export interface SaveEventDataArgs {
   websiteId: string;
@@ -30,7 +30,7 @@ async function relationalQuery(data: SaveEventDataArgs) {
   const jsonKeys = flattenJSON(eventData);
 
   // id, websiteEventId, eventStringValue
-  const flattenedData = jsonKeys.map(a => ({
+  const flattenedData = jsonKeys.map((a) => ({
     id: uuid(),
     websiteEventId: eventId,
     websiteId,
@@ -48,7 +48,15 @@ async function relationalQuery(data: SaveEventDataArgs) {
 }
 
 async function clickhouseQuery(data: SaveEventDataArgs) {
-  const { websiteId, sessionId, eventId, urlPath, eventName, eventData, createdAt } = data;
+  const {
+    websiteId,
+    sessionId,
+    eventId,
+    urlPath,
+    eventName,
+    eventData,
+    createdAt,
+  } = data;
 
   const { insert, getUTCString } = clickhouse;
   const { sendMessage } = kafka;
@@ -72,8 +80,8 @@ async function clickhouseQuery(data: SaveEventDataArgs) {
   });
 
   if (kafka.enabled) {
-    await sendMessage('event_data', messages);
+    await sendMessage("event_data", messages);
   } else {
-    await insert('event_data', messages);
+    await insert("event_data", messages);
   }
 }

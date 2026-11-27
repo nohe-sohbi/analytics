@@ -1,11 +1,13 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getEventDataFields';
+const FUNCTION_NAME = "getEventDataFields";
 
-export async function getEventDataFields(...args: [websiteId: string, filters: QueryFilters]) {
+export async function getEventDataFields(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -14,10 +16,11 @@ export async function getEventDataFields(...args: [websiteId: string, filters: Q
 
 async function relationalQuery(websiteId: string, filters: QueryFilters) {
   const { rawQuery, parseFilters, getDateSQL } = prisma;
-  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   return rawQuery(
     `
@@ -26,7 +29,7 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
       data_type as "dataType",
       case 
         when data_type = 2 then replace(string_value, '.0000', '') 
-        when data_type = 4 then ${getDateSQL('date_value', 'hour')} 
+        when data_type = 4 then ${getDateSQL("date_value", "hour")} 
         else string_value
       end as "value",
       count(*) as "total"
@@ -51,9 +54,19 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
 async function clickhouseQuery(
   websiteId: string,
   filters: QueryFilters,
-): Promise<{ propertyName: string; dataType: number; propertyValue: string; total: number }[]> {
+): Promise<
+  {
+    propertyName: string;
+    dataType: number;
+    propertyValue: string;
+    total: number;
+  }[]
+> {
   const { rawQuery, parseFilters } = clickhouse;
-  const { filterQuery, cohortQuery, queryParams } = parseFilters({ ...filters, websiteId });
+  const { filterQuery, cohortQuery, queryParams } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   return rawQuery(
     `

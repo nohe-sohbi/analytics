@@ -1,9 +1,9 @@
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getSessionReplays';
+const FUNCTION_NAME = "getSessionReplays";
 
 export function getSessionReplays(
   ...args: [websiteId: string, filters: QueryFilters, sessionId?: string]
@@ -14,7 +14,11 @@ export function getSessionReplays(
   });
 }
 
-async function relationalQuery(websiteId: string, filters: QueryFilters, sessionId?: string) {
+async function relationalQuery(
+  websiteId: string,
+  filters: QueryFilters,
+  sessionId?: string,
+) {
   const { pagedRawQuery, parseFilters } = prisma;
   const { search } = filters;
   const { filterQuery, cohortQuery, queryParams } = parseFilters({
@@ -34,9 +38,11 @@ async function relationalQuery(websiteId: string, filters: QueryFilters, session
         on website_event.website_id = sr.website_id
           and website_event.session_id = sr.session_id
           and website_event.visit_id = sr.visit_id`
-      : '';
+      : "";
 
-  const sessionFilter = sessionId ? 'and sr.session_id = {{sessionId::uuid}}' : '';
+  const sessionFilter = sessionId
+    ? "and sr.session_id = {{sessionId::uuid}}"
+    : "";
 
   const searchQuery = search
     ? `and (session.distinct_id ilike {{search}}
@@ -44,7 +50,7 @@ async function relationalQuery(websiteId: string, filters: QueryFilters, session
            or session.browser ilike {{search}}
            or session.os ilike {{search}}
            or session.device ilike {{search}})`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `
@@ -87,7 +93,11 @@ async function relationalQuery(websiteId: string, filters: QueryFilters, session
   );
 }
 
-async function clickhouseQuery(websiteId: string, filters: QueryFilters, sessionId?: string) {
+async function clickhouseQuery(
+  websiteId: string,
+  filters: QueryFilters,
+  sessionId?: string,
+) {
   const { pagedRawQuery, parseFilters } = clickhouse;
   const { search } = filters;
   const { queryParams, cohortQuery, filterQuery } = parseFilters({
@@ -95,7 +105,9 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters, session
     websiteId,
   });
 
-  const sessionFilter = sessionId ? 'and session_replay.session_id = {sessionId:UUID}' : '';
+  const sessionFilter = sessionId
+    ? "and session_replay.session_id = {sessionId:UUID}"
+    : "";
 
   const searchQuery = search
     ? `and ((positionCaseInsensitive(distinct_id, {search:String}) > 0)
@@ -103,7 +115,7 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters, session
            or (positionCaseInsensitive(browser, {search:String}) > 0)
            or (positionCaseInsensitive(os, {search:String}) > 0)
            or (positionCaseInsensitive(device, {search:String}) > 0))`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `

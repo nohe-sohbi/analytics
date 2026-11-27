@@ -1,9 +1,9 @@
-import { gunzipSync } from 'node:zlib';
-import clickhouse from '@/lib/clickhouse';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
+import { gunzipSync } from "node:zlib";
+import clickhouse from "@/lib/clickhouse";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
 
-const FUNCTION_NAME = 'getReplayChunks';
+const FUNCTION_NAME = "getReplayChunks";
 
 export interface ReplayChunk {
   sessionId: string;
@@ -15,14 +15,20 @@ export interface ReplayChunk {
   endedAt: Date;
 }
 
-export async function getReplayChunks(websiteId: string, visitId: string): Promise<ReplayChunk[]> {
+export async function getReplayChunks(
+  websiteId: string,
+  visitId: string,
+): Promise<ReplayChunk[]> {
   return runQuery({
     [PRISMA]: () => relationalQuery(websiteId, visitId),
     [CLICKHOUSE]: () => clickhouseQuery(websiteId, visitId),
   });
 }
 
-async function relationalQuery(websiteId: string, visitId: string): Promise<ReplayChunk[]> {
+async function relationalQuery(
+  websiteId: string,
+  visitId: string,
+): Promise<ReplayChunk[]> {
   const { rawQuery } = prisma;
 
   const chunks: {
@@ -52,13 +58,16 @@ async function relationalQuery(websiteId: string, visitId: string): Promise<Repl
     FUNCTION_NAME,
   );
 
-  return chunks.map(chunk => ({
+  return chunks.map((chunk) => ({
     ...chunk,
-    events: JSON.parse(gunzipSync(Buffer.from(chunk.events)).toString('utf-8')),
+    events: JSON.parse(gunzipSync(Buffer.from(chunk.events)).toString("utf-8")),
   }));
 }
 
-async function clickhouseQuery(websiteId: string, visitId: string): Promise<ReplayChunk[]> {
+async function clickhouseQuery(
+  websiteId: string,
+  visitId: string,
+): Promise<ReplayChunk[]> {
   const { rawQuery } = clickhouse;
 
   const results = await rawQuery<
@@ -90,7 +99,7 @@ async function clickhouseQuery(websiteId: string, visitId: string): Promise<Repl
     FUNCTION_NAME,
   );
 
-  return results.map(row => ({
+  return results.map((row) => ({
     sessionId: row.sessionId,
     visitId: row.visitId,
     events: JSON.parse(row.events),

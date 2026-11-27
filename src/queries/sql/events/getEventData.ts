@@ -1,12 +1,14 @@
-import clickhouse from '@/lib/clickhouse';
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getEventData';
+const FUNCTION_NAME = "getEventData";
 
-export async function getEventData(...args: [websiteId: string, filters: QueryFilters]) {
+export async function getEventData(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -19,10 +21,11 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
   const size = +pageSize || DEFAULT_PAGE_SIZE;
   const offset = +size * (+page - 1);
 
-  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } = parseFilters({
-    ...filters,
-    websiteId,
-  });
+  const { filterQuery, cohortQuery, joinSessionQuery, queryParams } =
+    parseFilters({
+      ...filters,
+      websiteId,
+    });
 
   // Selects distinct event IDs matching all filters — reused for count and paged data
   const eventQuery = `
@@ -39,9 +42,10 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
     group by website_event.event_id
   `;
 
-  const count = await rawQuery(`select count(*) as num from (${eventQuery}) t`, queryParams).then(
-    (res: any) => res[0].num,
-  );
+  const count = await rawQuery(
+    `select count(*) as num from (${eventQuery}) t`,
+    queryParams,
+  ).then((res: any) => res[0].num);
 
   const data = await rawQuery(
     `
@@ -82,7 +86,10 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters) {
   const size = +pageSize || DEFAULT_PAGE_SIZE;
   const offset = +size * (+page - 1);
 
-  const { filterQuery, cohortQuery, queryParams } = parseFilters({ ...filters, websiteId });
+  const { filterQuery, cohortQuery, queryParams } = parseFilters({
+    ...filters,
+    websiteId,
+  });
 
   // Selects distinct event IDs matching all filters — reused for count and paged data
   const eventQuery = `
@@ -105,9 +112,10 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters) {
     group by event_data.event_id
   `;
 
-  const count = await rawQuery(`select count(*) as num from (${eventQuery}) t`, queryParams).then(
-    (res: any) => res[0].num,
-  );
+  const count = await rawQuery(
+    `select count(*) as num from (${eventQuery}) t`,
+    queryParams,
+  ).then((res: any) => res[0].num);
 
   const data = await rawQuery(
     `

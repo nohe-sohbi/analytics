@@ -1,12 +1,14 @@
-import clickhouse from '@/lib/clickhouse';
-import { EVENT_COLUMNS } from '@/lib/constants';
-import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
-import prisma from '@/lib/prisma';
-import type { QueryFilters } from '@/lib/types';
+import clickhouse from "@/lib/clickhouse";
+import { EVENT_COLUMNS } from "@/lib/constants";
+import { CLICKHOUSE, PRISMA, runQuery } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import type { QueryFilters } from "@/lib/types";
 
-const FUNCTION_NAME = 'getWebsiteSessions';
+const FUNCTION_NAME = "getWebsiteSessions";
 
-export async function getWebsiteSessions(...args: [websiteId: string, filters: QueryFilters]) {
+export async function getWebsiteSessions(
+  ...args: [websiteId: string, filters: QueryFilters]
+) {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
     [CLICKHOUSE]: () => clickhouseQuery(...args),
@@ -28,7 +30,7 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
            or browser ilike {{search}}
            or os ilike {{search}}
            or device ilike {{search}})`
-    : '';
+    : "";
 
   return pagedRawQuery(
     `
@@ -91,11 +93,11 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters) {
            or (positionCaseInsensitive(browser, {search:String}) > 0)
            or (positionCaseInsensitive(os, {search:String}) > 0)
            or (positionCaseInsensitive(device, {search:String}) > 0))`
-    : '';
+    : "";
 
-  let sql = '';
+  let sql = "";
 
-  if (EVENT_COLUMNS.some(item => Object.keys(filters).includes(item))) {
+  if (EVENT_COLUMNS.some((item) => Object.keys(filters).includes(item))) {
     sql = `
     select
       session_id as id,
@@ -109,8 +111,8 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters) {
       country,
       region,
       city,
-      ${getDateStringSQL('min(created_at)')} as firstAt,
-      ${getDateStringSQL('max(created_at)')} as lastAt,
+      ${getDateStringSQL("min(created_at)")} as firstAt,
+      ${getDateStringSQL("max(created_at)")} as lastAt,
       uniq(visit_id) as visits,
       sumIf(1, event_type = 1) as views,
       sumIf(1, event_type = 2) as events,
@@ -138,8 +140,8 @@ async function clickhouseQuery(websiteId: string, filters: QueryFilters) {
       country,
       region,
       city,
-      ${getDateStringSQL('min(min_time)')} as firstAt,
-      ${getDateStringSQL('max(max_time)')} as lastAt,
+      ${getDateStringSQL("min(min_time)")} as firstAt,
+      ${getDateStringSQL("max(max_time)")} as lastAt,
       uniq(visit_id) as visits,
       sumIf(views, event_type = 1) as views,
       sum(length(event_name)) as events,

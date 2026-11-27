@@ -82,12 +82,12 @@ jobs:
               GHCR_TAGS="$GHCR_TAGS,ghcr.io/${{ github.repository }}:${MAJOR}.${MINOR}"
               GHCR_TAGS="$GHCR_TAGS,ghcr.io/${{ github.repository }}:${MAJOR}"
               GHCR_TAGS="$GHCR_TAGS,ghcr.io/${{ github.repository }}:postgresql-latest"
-          
+
               DOCKER_TAGS="umamisoftware/umami:$VERSION"
               DOCKER_TAGS="$DOCKER_TAGS,umamisoftware/umami:${MAJOR}.${MINOR}"
               DOCKER_TAGS="$DOCKER_TAGS,umamisoftware/umami:${MAJOR}"
               DOCKER_TAGS="$DOCKER_TAGS,umamisoftware/umami:postgresql-latest"
-          
+
               # Add latest tag based on trigger and input
               if [[ "$REF_TYPE" == "tag" ]] || [[ "$INCLUDE_LATEST" == "true" ]]; then
                 GHCR_TAGS="$GHCR_TAGS,ghcr.io/${{ github.repository }}:latest"
